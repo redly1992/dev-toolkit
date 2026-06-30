@@ -62,6 +62,9 @@ function patchAngularJson() {
     arch.build.configurations.focus = FOCUS_BUILD_CONFIG;
     arch.serve.configurations.focus  = FOCUS_SERVE_CONFIG;
 
+    // Focus test — lean karma config (no parallel, no coverage, no reporters)
+    arch.test.configurations.focus = { karmaConfig: 'src/karma-focus.conf.js' };
+
     // Per-module test configurations (used by Focus Test)
     if ( !arch.test.configurations ) arch.test.configurations = {};
     for ( const mod of MODULES ) {

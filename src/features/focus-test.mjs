@@ -87,9 +87,9 @@ export default {
         writeConfig( config );
 
         // ── 4. Run test ───────────────────────────────────────────────────────
-        // Only use --include. Adding --configuration <module> would cause esbuild
-        // to compile ALL specs in that module (not just this file), which is slow.
-        const args = [ 'test', '--no-watch', '--include', filePath ];
+        // --configuration focus → uses karma-focus.conf.js (no parallel, no coverage)
+        // --include → esbuild compiles only this file's dependency tree
+        const args = [ 'test', '--no-watch', '--configuration', 'focus', '--include', filePath ];
 
         console.log( chalk.dim( `  Running: ng ${args.join( ' ' )}\n` ) );
 
