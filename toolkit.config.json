@@ -1,0 +1,107 @@
+{
+  "version": "1",
+  "focusServe": {
+    "modules": [
+      {
+        "name": "account-management",
+        "selected": false
+      },
+      {
+        "name": "advisor",
+        "selected": false
+      },
+      {
+        "name": "authorisation",
+        "selected": false
+      },
+      {
+        "name": "backoffice",
+        "selected": false
+      },
+      {
+        "name": "configuration",
+        "selected": false
+      },
+      {
+        "name": "corporate-actions",
+        "selected": false
+      },
+      {
+        "name": "fee-charge",
+        "selected": false
+      },
+      {
+        "name": "generic-interface",
+        "selected": false
+      },
+      {
+        "name": "helper",
+        "selected": false
+      },
+      {
+        "name": "home",
+        "selected": false
+      },
+      {
+        "name": "infront",
+        "selected": false
+      },
+      {
+        "name": "instrument",
+        "selected": false
+      },
+      {
+        "name": "legal-reporting",
+        "selected": false
+      },
+      {
+        "name": "margin",
+        "selected": false
+      },
+      {
+        "name": "midoffice",
+        "selected": false
+      },
+      {
+        "name": "order",
+        "selected": false
+      },
+      {
+        "name": "payments",
+        "selected": false
+      },
+      {
+        "name": "pension",
+        "selected": false
+      },
+      {
+        "name": "performance-reportings",
+        "selected": false
+      },
+      {
+        "name": "private-banking",
+        "selected": false
+      },
+      {
+        "name": "recon",
+        "selected": false
+      },
+      {
+        "name": "settings",
+        "selected": false
+      },
+      {
+        "name": "settlement",
+        "selected": false
+      },
+      {
+        "name": "transaction",
+        "selected": false
+      },
+      {
+        "name": "wealth",
+        "selected": false
+      }
+    ]
+  }
+}

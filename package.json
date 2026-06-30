@@ -1,0 +1,21 @@
+{
+  "name": "@europort/dev-toolkit",
+  "version": "1.0.0",
+  "description": "Interactive development toolkit for the Europort Angular workspace",
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "bin": {
+    "toolkit": "./src/index.mjs"
+  },
+  "scripts": {
+    "prestart": "npm install --silent",
+    "start": "node src/index.mjs"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^7.4.0",
+    "chalk": "^5.4.1",
+    "execa": "^9.5.2"
+  }
+}
