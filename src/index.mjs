@@ -18,6 +18,7 @@ import { isSetupDone } from './features/setup.mjs';
 import setup        from './features/setup.mjs';
 import focusServe   from './features/focus-serve.mjs';
 import createBranch from './features/create-branch.mjs';
+import authConfig   from './features/auth-config.mjs';
 
 /** @typedef {{ name: string, description: string, run(): Promise<void> }} Feature */
 
@@ -26,6 +27,7 @@ const FEATURES = [
     setup,
     focusServe,
     createBranch,
+    authConfig,
     // add new features here ↓
 ];
 // ─────────────────────────────────────────────────────────────────────────────

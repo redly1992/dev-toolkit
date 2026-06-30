@@ -18,6 +18,11 @@ const DEFAULT_CONFIG = {
     createBranch: {
         baseBranch: '',
     },
+    authConfig: {
+        version: '',
+        authType: 'ldap',
+        baseUrlTemplate: 'http://prod-{version}-epicnl.gui.stack02.cloud.able.nv:8080',
+    },
 };
 
 export function readConfig() {

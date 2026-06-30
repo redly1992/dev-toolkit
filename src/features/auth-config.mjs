@@ -1,0 +1,116 @@
+import { input, select, confirm } from '@inquirer/prompts';
+import chalk from 'chalk';
+import { readFileSync, writeFileSync } from 'fs';
+import { resolve } from 'path';
+import { readConfig, writeConfig } from '../utils/config.mjs';
+import { WORKSPACE_ROOT } from '../utils/runner.mjs';
+
+const AUTH_CONFIG_PATH = resolve( WORKSPACE_ROOT, 'src/authentication.configuration.json' );
+
+const BASE_URL_TEMPLATES = [
+    'http://prod-{version}-epicnl.gui.stack02.cloud.able.nv:8080',
+    'http://nn-{version}-epic.envmgt.stack02.cloud.able.nv:8080',
+    'http://ach-{version}-epic.envmgt.stack02.cloud.able.nv:8080',
+    'http://ing-{version}-epic.envmgt.stack02.cloud.able.nv:8080',
+    'http://aab-{version}-epic.envmgt.stack02.cloud.able.nv:8081',
+];
+
+const AUTH_CONFIGS = {
+    ldap: {
+        authType: 'ldap',
+        sessionValidDuration: 60000,
+        authConfig: [
+            {
+                issuer: 'https://adfs.able.nv/adfs',
+                clientId: '8787bbd8-540a-463c-863a-53aaa2fdfee2',
+                scope: 'openid',
+                displayName: 'epic-test-client - Native application',
+                strictDocumentValidation: false,
+            },
+        ],
+    },
+    jwt: {
+        authType: 'jwt',
+        sessionValidDuration: 60000,
+        authConfig: [
+            {
+                issuer: 'https://adfs.able.nv/adfs',
+                clientId: '45762c25-54d0-4313-ad5f-52c8532bf822',
+                scope: 'openid',
+                displayName: 'epic-test-client - Native application',
+            },
+        ],
+    },
+};
+
+/** @type {import('../index.mjs').Feature} */
+export default {
+    name: 'Auth Config',
+    description: 'Set authentication.configuration.json (ldap / jwt)',
+
+    async run() {
+        const config = readConfig();
+
+        if ( !config.authConfig ) config.authConfig = { version: '', authType: 'ldap', baseUrlTemplate: BASE_URL_TEMPLATES[ 0 ] };
+
+        const saved = config.authConfig;
+
+        // ── 1. Auth type ──────────────────────────────────────────────────────
+        const authType = await select( {
+            message: 'Auth type',
+            choices: [
+                { name: 'ldap', value: 'ldap' },
+                { name: 'jwt',  value: 'jwt'  },
+            ],
+            default: saved.authType || 'ldap',
+            loop: false,
+        } );
+
+        // ── 2. Version ────────────────────────────────────────────────────────
+        const version = await input( {
+            message: 'Version',
+            default: saved.version || undefined,
+            placeholder: 'e.g. 0906',
+            validate( v ) {
+                return v.trim().length > 0 ? true : 'Version is required.';
+            },
+        } );
+
+        // ── 3. Base URL ───────────────────────────────────────────────────────
+        const baseUrlTemplate = await select( {
+            message: 'Base URL',
+            choices: BASE_URL_TEMPLATES.map( t => {
+                const resolved = t.replace( '{version}', version.trim() );
+
+                return { name: resolved, value: t, short: resolved };
+            } ),
+            default: saved.baseUrlTemplate || BASE_URL_TEMPLATES[ 0 ],
+            loop: false,
+        } );
+
+        const baseUrl = baseUrlTemplate.replace( '{version}', version.trim() );
+
+        // ── 4. Preview ────────────────────────────────────────────────────────
+        const newAuthConfig = {
+            baseUrl,
+            ...AUTH_CONFIGS[ authType ],
+        };
+
+        console.log( '' );
+        console.log( chalk.dim( '  Preview:' ) );
+        console.log( chalk.dim( JSON.stringify( newAuthConfig, null, 2 ).replace( /^/gm, '  ' ) ) );
+        console.log( '' );
+
+        const ok = await confirm( { message: 'Write to authentication.configuration.json?', default: true } );
+        if ( !ok ) return;
+
+        // ── 5. Write auth file ────────────────────────────────────────────────
+        writeFileSync( AUTH_CONFIG_PATH, JSON.stringify( newAuthConfig, null, 4 ) + '\n', 'utf8' );
+
+        // ── 6. Persist config ─────────────────────────────────────────────────
+        config.authConfig = { version: version.trim(), authType, baseUrlTemplate };
+        writeConfig( config );
+
+        console.log( chalk.bold.green( '\n  ✔ authentication.configuration.json updated\n' ) );
+    },
+};
