@@ -4,14 +4,11 @@ Interactive CLI to speed up local development.
 
 ## Getting Started
 
-No manual setup required. Just run from the `dev-toolkit/` folder:
-
 ```bash
 cd dev-toolkit
+npm install
 npm start
 ```
-
-`npm start` automatically installs dependencies on first run via `prestart`.
 
 On first launch the toolkit detects the workspace hasn't been configured yet and walks you through **Setup** automatically.
 

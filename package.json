@@ -10,7 +10,6 @@
     "toolkit": "./src/index.mjs"
   },
   "scripts": {
-    "prestart": "npm install --silent",
     "start": "node src/index.mjs"
   },
   "dependencies": {
