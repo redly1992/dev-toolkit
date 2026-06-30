@@ -54,6 +54,51 @@ export default {
         if ( !config.authConfig ) config.authConfig = { version: '', authType: 'ldap', baseUrlTemplate: BASE_URL_TEMPLATES[ 0 ] };
 
         const saved = config.authConfig;
+        const hasSavedData = !!( saved.version && saved.baseUrlTemplate );
+
+        // ── Quick Apply (only when saved data exists) ─────────────────────────
+        if ( hasSavedData ) {
+            const savedBaseUrl = saved.baseUrlTemplate.replace( '{version}', saved.version );
+            const otherType    = saved.authType === 'ldap' ? 'jwt' : 'ldap';
+
+            const mode = await select( {
+                message: 'Mode',
+                choices: [
+                    {
+                        name:  `Quick Apply — toggle to ${chalk.bold( otherType )}  ${chalk.dim( `v${saved.version} · ${savedBaseUrl}` )}`,
+                        value: 'quick-toggle',
+                        short: `Quick Apply (${otherType})`,
+                    },
+                    {
+                        name:  `Quick Apply — reapply ${chalk.bold( saved.authType )}  ${chalk.dim( `v${saved.version} · ${savedBaseUrl}` )}`,
+                        value: 'quick-reapply',
+                        short: `Quick Apply (${saved.authType})`,
+                    },
+                    { name: 'Configure — change settings', value: 'configure', short: 'Configure' },
+                ],
+                loop: false,
+            } );
+
+            if ( mode === 'quick-toggle' || mode === 'quick-reapply' ) {
+                const authType    = mode === 'quick-toggle' ? otherType : saved.authType;
+                const newAuthConfig = { baseUrl: savedBaseUrl, ...AUTH_CONFIGS[ authType ] };
+
+                console.log( '' );
+                console.log( chalk.dim( '  Preview:' ) );
+                console.log( chalk.dim( JSON.stringify( newAuthConfig, null, 2 ).replace( /^/gm, '  ' ) ) );
+                console.log( '' );
+
+                const ok = await confirm( { message: 'Write to authentication.configuration.json?', default: true } );
+                if ( !ok ) return;
+
+                writeFileSync( AUTH_CONFIG_PATH, JSON.stringify( newAuthConfig, null, 4 ) + '\n', 'utf8' );
+                config.authConfig.authType = authType;
+                writeConfig( config );
+                console.log( chalk.bold.green( '\n  ✔ authentication.configuration.json updated\n' ) );
+
+                return;
+            }
+        }
 
         // ── 1. Auth type ──────────────────────────────────────────────────────
         const authType = await select( {
