@@ -17,6 +17,7 @@ import { isSetupDone } from './features/setup.mjs';
 // ─── Feature registry ────────────────────────────────────────────────────────
 import setup        from './features/setup.mjs';
 import focusServe   from './features/focus-serve.mjs';
+import focusTest    from './features/focus-test.mjs';
 import createBranch from './features/create-branch.mjs';
 import authConfig   from './features/auth-config.mjs';
 
@@ -26,6 +27,7 @@ import authConfig   from './features/auth-config.mjs';
 const FEATURES = [
     setup,
     focusServe,
+    focusTest,
     createBranch,
     authConfig,
     // add new features here ↓

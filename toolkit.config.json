@@ -108,8 +108,11 @@
     "baseBranch": ""
   },
   "authConfig": {
-    "version": "",
-    "authType": "ldap",
-    "baseUrlTemplate": "http://prod-{version}-epicnl.gui.stack02.cloud.able.nv:8080"
+    "version": "0907",
+    "authType": "jwt",
+    "baseUrlTemplate": "http://ach-{version}-epic.envmgt.stack02.cloud.able.nv:8080"
+  },
+  "focusTest": {
+    "recent": []
   }
 }

@@ -23,6 +23,9 @@ const DEFAULT_CONFIG = {
         authType: 'ldap',
         baseUrlTemplate: 'http://prod-{version}-epicnl.gui.stack02.cloud.able.nv:8080',
     },
+    focusTest: {
+        recent: [],
+    },
 };
 
 export function readConfig() {
