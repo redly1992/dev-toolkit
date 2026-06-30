@@ -87,9 +87,9 @@ export default {
         writeConfig( config );
 
         // ── 4. Run test ───────────────────────────────────────────────────────
+        // Only use --include. Adding --configuration <module> would cause esbuild
+        // to compile ALL specs in that module (not just this file), which is slow.
         const args = [ 'test', '--no-watch', '--include', filePath ];
-
-        if ( mod ) args.push( '--configuration', mod );
 
         console.log( chalk.dim( `  Running: ng ${args.join( ' ' )}\n` ) );
 
