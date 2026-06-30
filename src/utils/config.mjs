@@ -15,6 +15,9 @@ const DEFAULT_CONFIG = {
             'private-banking', 'recon', 'settings', 'settlement', 'transaction', 'wealth',
         ].map( name => ( { name, selected: false } ) ),
     },
+    createBranch: {
+        baseBranch: '',
+    },
 };
 
 export function readConfig() {

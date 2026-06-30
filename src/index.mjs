@@ -15,8 +15,9 @@ import chalk from 'chalk';
 import { isSetupDone } from './features/setup.mjs';
 
 // ─── Feature registry ────────────────────────────────────────────────────────
-import setup     from './features/setup.mjs';
-import focusServe from './features/focus-serve.mjs';
+import setup        from './features/setup.mjs';
+import focusServe   from './features/focus-serve.mjs';
+import createBranch from './features/create-branch.mjs';
 
 /** @typedef {{ name: string, description: string, run(): Promise<void> }} Feature */
 
@@ -24,6 +25,7 @@ import focusServe from './features/focus-serve.mjs';
 const FEATURES = [
     setup,
     focusServe,
+    createBranch,
     // add new features here ↓
 ];
 // ─────────────────────────────────────────────────────────────────────────────

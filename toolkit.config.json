@@ -103,5 +103,8 @@
         "selected": false
       }
     ]
+  },
+  "createBranch": {
+    "baseBranch": ""
   }
 }
