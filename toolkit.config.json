@@ -113,6 +113,8 @@
     "baseUrlTemplate": "http://ach-{version}-epic.envmgt.stack02.cloud.able.nv:8080"
   },
   "focusTest": {
-    "recent": []
+    "recent": [
+      "src/app/modules/account-management/parties/components/party/party.component.spec.ts"
+    ]
   }
 }

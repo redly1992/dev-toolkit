@@ -1,11 +1,15 @@
-import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { resolve } from 'path';
+import { readFileSync, writeFileSync, existsSync, copyFileSync } from 'fs';
+import { resolve, dirname } from 'path';
 import chalk from 'chalk';
 import { confirm } from '@inquirer/prompts';
+import { fileURLToPath } from 'url';
 import { WORKSPACE_ROOT } from '../utils/runner.mjs';
 
+const TOOLKIT_ROOT      = resolve( dirname( fileURLToPath( import.meta.url ) ), '../../' );
 const ANGULAR_JSON_PATH = resolve( WORKSPACE_ROOT, 'angular.json' );
 const GITIGNORE_PATH    = resolve( WORKSPACE_ROOT, '.gitignore' );
+const KARMA_FOCUS_SRC   = resolve( TOOLKIT_ROOT,   'assets/karma-focus.conf.js' );
+const KARMA_FOCUS_DEST  = resolve( WORKSPACE_ROOT, 'src/karma-focus.conf.js' );
 
 const GITIGNORE_BLOCK = `
 # Dev Toolkit — generated files (do not edit manually)
@@ -85,7 +89,11 @@ function patchAngularJson() {
     writeFileSync( ANGULAR_JSON_PATH, JSON.stringify( json, null, 2 ) + '\n', 'utf8' );
 }
 
-function patchGitignore() {
+function copyKarmaFocusConfig() {
+    copyFileSync( KARMA_FOCUS_SRC, KARMA_FOCUS_DEST );
+}
+
+
     const current = existsSync( GITIGNORE_PATH )
         ? readFileSync( GITIGNORE_PATH, 'utf8' )
         : '';
@@ -113,14 +121,18 @@ export default {
         }
 
         console.log( chalk.cyan( '\n  This will modify the following files in the workspace:\n' ) );
-        console.log( chalk.dim( `    • angular.json  — add build:focus + serve:focus + per-module test configurations` ) );
-        console.log( chalk.dim( `    • .gitignore    — add generated routing file + dev-toolkit/node_modules/\n` ) );
+        console.log( chalk.dim( `    • angular.json        — add build:focus + serve:focus + per-module test configurations` ) );
+        console.log( chalk.dim( `    • src/karma-focus.conf.js — lean karma config (no parallel, no coverage)` ) );
+        console.log( chalk.dim( `    • .gitignore          — add generated routing file + dev-toolkit/node_modules/\n` ) );
 
         const ok = await confirm( { message: 'Proceed?', default: true } );
         if ( !ok ) return;
 
         patchAngularJson();
         console.log( chalk.green( '  ✔ angular.json patched' ) );
+
+        copyKarmaFocusConfig();
+        console.log( chalk.green( '  ✔ src/karma-focus.conf.js created' ) );
 
         patchGitignore();
         console.log( chalk.green( '  ✔ .gitignore patched' ) );
