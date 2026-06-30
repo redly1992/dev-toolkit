@@ -80,21 +80,13 @@ export default {
             } );
 
             if ( mode === 'quick-toggle' || mode === 'quick-reapply' ) {
-                const authType    = mode === 'quick-toggle' ? otherType : saved.authType;
+                const authType      = mode === 'quick-toggle' ? otherType : saved.authType;
                 const newAuthConfig = { baseUrl: savedBaseUrl, ...AUTH_CONFIGS[ authType ] };
-
-                console.log( '' );
-                console.log( chalk.dim( '  Preview:' ) );
-                console.log( chalk.dim( JSON.stringify( newAuthConfig, null, 2 ).replace( /^/gm, '  ' ) ) );
-                console.log( '' );
-
-                const ok = await confirm( { message: 'Write to authentication.configuration.json?', default: true } );
-                if ( !ok ) return;
 
                 writeFileSync( AUTH_CONFIG_PATH, JSON.stringify( newAuthConfig, null, 4 ) + '\n', 'utf8' );
                 config.authConfig.authType = authType;
                 writeConfig( config );
-                console.log( chalk.bold.green( '\n  ✔ authentication.configuration.json updated\n' ) );
+                console.log( chalk.bold.green( `\n  ✔ authentication.configuration.json updated (${authType})\n` ) );
 
                 return;
             }
