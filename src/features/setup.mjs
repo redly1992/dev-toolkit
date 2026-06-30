@@ -34,6 +34,14 @@ const FOCUS_BUILD_CONFIG = {
     ],
 };
 
+const MODULES = [
+    'account-management', 'advisor', 'authorisation', 'backoffice',
+    'configuration', 'corporate-actions', 'fee-charge', 'generic-interface',
+    'helper', 'home', 'infront', 'instrument', 'legal-reporting', 'margin',
+    'midoffice', 'order', 'payments', 'pension', 'performance-reportings',
+    'private-banking', 'recon', 'settings', 'settlement', 'transaction', 'wealth',
+];
+
 const FOCUS_SERVE_CONFIG = {
     buildTarget: 'topicus:build:focus',
 };
@@ -50,8 +58,27 @@ function patchAngularJson() {
     const json = JSON.parse( readFileSync( ANGULAR_JSON_PATH, 'utf8' ) );
     const arch = json.projects.topicus.architect;
 
+    // Focus serve
     arch.build.configurations.focus = FOCUS_BUILD_CONFIG;
     arch.serve.configurations.focus  = FOCUS_SERVE_CONFIG;
+
+    // Per-module test configurations (used by Focus Test)
+    if ( !arch.test.configurations ) arch.test.configurations = {};
+    for ( const mod of MODULES ) {
+        arch.test.configurations[ mod ] = {
+            include: [ `src/app/modules/${mod}/**/*.spec.ts` ],
+        };
+    }
+
+    // test-dev also needs them if the target exists
+    if ( arch[ 'test-dev' ] ) {
+        if ( !arch[ 'test-dev' ].configurations ) arch[ 'test-dev' ].configurations = {};
+        for ( const mod of MODULES ) {
+            arch[ 'test-dev' ].configurations[ mod ] = {
+                include: [ `src/app/modules/${mod}/**/*.spec.ts` ],
+            };
+        }
+    }
 
     writeFileSync( ANGULAR_JSON_PATH, JSON.stringify( json, null, 2 ) + '\n', 'utf8' );
 }
@@ -84,7 +111,7 @@ export default {
         }
 
         console.log( chalk.cyan( '\n  This will modify the following files in the workspace:\n' ) );
-        console.log( chalk.dim( `    • angular.json  — add build:focus + serve:focus configurations` ) );
+        console.log( chalk.dim( `    • angular.json  — add build:focus + serve:focus + per-module test configurations` ) );
         console.log( chalk.dim( `    • .gitignore    — add generated routing file + dev-toolkit/node_modules/\n` ) );
 
         const ok = await confirm( { message: 'Proceed?', default: true } );
