@@ -58,24 +58,23 @@ function patchAngularJson() {
     const json = JSON.parse( readFileSync( ANGULAR_JSON_PATH, 'utf8' ) );
     const arch = json.projects.topicus.architect;
 
-    // Focus serve
+    // ── Focus Serve ────────────────────────────────────────────────────────────
     arch.build.configurations.focus = FOCUS_BUILD_CONFIG;
     arch.serve.configurations.focus  = FOCUS_SERVE_CONFIG;
 
-    // Focus test — lean karma config (no parallel, no coverage, no reporters)
-    arch.test.configurations.focus = { karmaConfig: 'src/karma-focus.conf.js' };
-
-    // Per-module test configurations (used by Focus Test)
+    // ── Focus Test (lean karma — no parallel, no coverage, no reporters) ───────
     if ( !arch.test.configurations ) arch.test.configurations = {};
+    arch.test.configurations.focus = { karmaConfig: 'src/karma-focus.conf.js' };
     for ( const mod of MODULES ) {
         arch.test.configurations[ mod ] = {
             include: [ `src/app/modules/${mod}/**/*.spec.ts` ],
         };
     }
 
-    // test-dev also needs them if the target exists
+    // ── test-dev: same focus + per-module configs ──────────────────────────────
     if ( arch[ 'test-dev' ] ) {
         if ( !arch[ 'test-dev' ].configurations ) arch[ 'test-dev' ].configurations = {};
+        arch[ 'test-dev' ].configurations.focus = { karmaConfig: 'src/karma-focus.conf.js' };
         for ( const mod of MODULES ) {
             arch[ 'test-dev' ].configurations[ mod ] = {
                 include: [ `src/app/modules/${mod}/**/*.spec.ts` ],
