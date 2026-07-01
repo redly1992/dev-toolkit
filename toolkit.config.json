@@ -105,7 +105,7 @@
     ]
   },
   "createBranch": {
-    "baseBranch": ""
+    "baseBranch": "origin/integration/09.07"
   },
   "authConfig": {
     "version": "0907",
@@ -114,6 +114,7 @@
   },
   "focusTest": {
     "recent": [
+      "src/app/modules/account-management/parties/modules/add-party/components/party-form/party-form.component.spec.ts",
       "src/app/modules/account-management/parties/components/party/party.component.spec.ts"
     ]
   }

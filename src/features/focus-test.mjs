@@ -2,28 +2,31 @@ import { input, select } from '@inquirer/prompts';
 import chalk from 'chalk';
 import { execa } from 'execa';
 import { writeFileSync } from 'fs';
-import { resolve } from 'path';
+import { dirname, resolve } from 'path';
+import { fileURLToPath } from 'url';
 import { readConfig, writeConfig } from '../utils/config.mjs';
 import { WORKSPACE_ROOT } from '../utils/runner.mjs';
 
 const MAX_RECENT = 5;
-const TSCONFIG_FOCUS_PATH = resolve( WORKSPACE_ROOT, 'src/tsconfig.focus-spec.json' );
+const TOOLKIT_DIR = resolve( dirname( fileURLToPath( import.meta.url ) ), '../../' );
+const TSCONFIG_FOCUS_PATH = resolve( TOOLKIT_DIR, 'assets/tsconfig.focus-spec.json' );
 
 /**
  * Generate a minimal tsconfig that only includes the target spec file.
+ * Lives in dev-toolkit/assets/ — paths are relative to that location.
  * This stops TypeScript from type-checking ALL spec files in the project.
  */
 function writeFocusTsConfig( specFilePath ) {
     const tsconfig = {
-        extends: '../tsconfig.json',
+        extends: '../../tsconfig.json',
         compilerOptions: {
-            outDir: '../out-tsc/spec',
+            outDir: '../../out-tsc/spec',
             types: [ 'jasmine', 'node' ],
         },
         files: [
-            'test.ts',
-            'polyfills.ts',
-            `../${specFilePath}`,
+            '../../src/test.ts',
+            '../../src/polyfills.ts',
+            `../../${specFilePath}`,
         ],
     };
     writeFileSync( TSCONFIG_FOCUS_PATH, JSON.stringify( tsconfig, null, 2 ) + '\n', 'utf8' );

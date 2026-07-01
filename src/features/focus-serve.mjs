@@ -3,20 +3,29 @@ import chalk from 'chalk';
 import { readConfig, writeConfig } from '../utils/config.mjs';
 import { runInWorkspace, WORKSPACE_ROOT } from '../utils/runner.mjs';
 import { resolve } from 'path';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { writeFileSync, readFileSync } from 'fs';
 
+const TOOLKIT_DIR  = resolve( dirname( fileURLToPath( import.meta.url ) ), '../../' );
 const ROUTING_SRC  = 'src/app/app-routing.config.ts';
-const ROUTING_DEST = 'src/app/app-routing.focus.config.ts';
+const ROUTING_DEST = resolve( TOOLKIT_DIR, 'assets/app-routing.focus.config.ts' );
 
 const LAZY_ROUTE_RE = /loadChildren:\s*\(\)\s*=>\s*import\(\s*['"][^'"]*\/modules\/([^\/'"]+)[^'"]*['"]\s*\)[\s\S]*?\.then\(\s*\w+\s*=>\s*\w+\.\w+\s*\)/g;
 
 function generateFocusRoutes( selectedModules ) {
     const focus = new Set( selectedModules );
     const src   = readFileSync( resolve( WORKSPACE_ROOT, ROUTING_SRC ), 'utf8' );
-    const out   = src.replace( LAZY_ROUTE_RE, ( match, moduleName ) =>
+    // Rewrite relative imports: file moves from src/app/ to dev-toolkit/assets/
+    const rebased = src
+        .replace( /from\s+'(\.\/[^']+)'/g, `from '../../src/app/$1'` )
+        .replace( /from\s+"(\.\/[^"]+)"/g, `from '../../src/app/$1'` )
+        .replace( /import\(\s*'(\.\/[^']+)'\s*\)/g, `import('../../src/app/$1')` )
+        .replace( /import\(\s*"(\.\/[^"]+)"\s*\)/g, `import('../../src/app/$1')` );
+    const out = rebased.replace( LAZY_ROUTE_RE, ( match, moduleName ) =>
         focus.has( moduleName ) ? match : `loadChildren: () => Promise.resolve([])`
     );
-    writeFileSync( resolve( WORKSPACE_ROOT, ROUTING_DEST ), out, 'utf8' );
+    writeFileSync( ROUTING_DEST, out, 'utf8' );
 }
 
 /** @type {import('../index.mjs').Feature} */

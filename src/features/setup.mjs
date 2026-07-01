@@ -9,8 +9,6 @@ const GITIGNORE_PATH    = resolve( WORKSPACE_ROOT, '.gitignore' );
 
 const GITIGNORE_BLOCK = `
 # Dev Toolkit — generated files (do not edit manually)
-src/app/app-routing.focus.config.ts
-src/tsconfig.focus-spec.json
 dev-toolkit/node_modules/
 `;
 
@@ -30,7 +28,7 @@ const FOCUS_BUILD_CONFIG = {
     fileReplacements: [
         {
             replace: 'src/app/app-routing.config.ts',
-            with:    'src/app/app-routing.focus.config.ts',
+            with:    'dev-toolkit/assets/app-routing.focus.config.ts',
         },
     ],
 };
@@ -67,7 +65,7 @@ function patchAngularJson() {
     if ( !arch.test.configurations ) arch.test.configurations = {};
     arch.test.configurations.focus = {
         karmaConfig: 'dev-toolkit/assets/karma-focus.conf.js',
-        tsConfig: 'src/tsconfig.focus-spec.json',
+        tsConfig: 'dev-toolkit/assets/tsconfig.focus-spec.json',
     };
     for ( const mod of MODULES ) {
         arch.test.configurations[ mod ] = {
@@ -80,7 +78,7 @@ function patchAngularJson() {
         if ( !arch[ 'test-dev' ].configurations ) arch[ 'test-dev' ].configurations = {};
         arch[ 'test-dev' ].configurations.focus = {
             karmaConfig: 'dev-toolkit/assets/karma-focus.conf.js',
-            tsConfig: 'src/tsconfig.focus-spec.json',
+            tsConfig: 'dev-toolkit/assets/tsconfig.focus-spec.json',
         };
         for ( const mod of MODULES ) {
             arch[ 'test-dev' ].configurations[ mod ] = {
@@ -97,7 +95,7 @@ function patchGitignore() {
         ? readFileSync( GITIGNORE_PATH, 'utf8' )
         : '';
 
-    if ( current.includes( 'app-routing.focus.config.ts' ) ) return;
+    if ( current.includes( 'dev-toolkit/node_modules/' ) ) return;
 
     writeFileSync( GITIGNORE_PATH, current + GITIGNORE_BLOCK, 'utf8' );
 }
