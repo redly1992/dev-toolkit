@@ -89,7 +89,7 @@ export default {
         // ── 4. Run test ───────────────────────────────────────────────────────
         // --configuration focus → uses karma-focus.conf.js (no parallel, no coverage)
         // --include → esbuild compiles only this file's dependency tree
-        const args = [ 'test', '--no-watch', '--configuration', 'focus', '--include', filePath ];
+        const args = [ 'test', '--configuration', 'focus', '--include', filePath ];
 
         console.log( chalk.dim( `  Running: ng ${args.join( ' ' )}\n` ) );
 
