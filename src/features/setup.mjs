@@ -10,6 +10,7 @@ const GITIGNORE_PATH    = resolve( WORKSPACE_ROOT, '.gitignore' );
 const GITIGNORE_BLOCK = `
 # Dev Toolkit — generated files (do not edit manually)
 src/app/app-routing.focus.config.ts
+src/tsconfig.focus-spec.json
 dev-toolkit/node_modules/
 `;
 
@@ -62,9 +63,12 @@ function patchAngularJson() {
     arch.build.configurations.focus = FOCUS_BUILD_CONFIG;
     arch.serve.configurations.focus  = FOCUS_SERVE_CONFIG;
 
-    // ── Focus Test (lean karma — no parallel, no coverage, no reporters) ───────
+    // ── Focus Test (lean karma + focused tsconfig via fileReplacements) ──────────
     if ( !arch.test.configurations ) arch.test.configurations = {};
-    arch.test.configurations.focus = { karmaConfig: 'dev-toolkit/assets/karma-focus.conf.js' };
+    arch.test.configurations.focus = {
+        karmaConfig: 'dev-toolkit/assets/karma-focus.conf.js',
+        tsConfig: 'src/tsconfig.focus-spec.json',
+    };
     for ( const mod of MODULES ) {
         arch.test.configurations[ mod ] = {
             include: [ `src/app/modules/${mod}/**/*.spec.ts` ],
@@ -74,7 +78,10 @@ function patchAngularJson() {
     // ── test-dev: same focus + per-module configs ──────────────────────────────
     if ( arch[ 'test-dev' ] ) {
         if ( !arch[ 'test-dev' ].configurations ) arch[ 'test-dev' ].configurations = {};
-        arch[ 'test-dev' ].configurations.focus = { karmaConfig: 'dev-toolkit/assets/karma-focus.conf.js' };
+        arch[ 'test-dev' ].configurations.focus = {
+            karmaConfig: 'dev-toolkit/assets/karma-focus.conf.js',
+            tsConfig: 'src/tsconfig.focus-spec.json',
+        };
         for ( const mod of MODULES ) {
             arch[ 'test-dev' ].configurations[ mod ] = {
                 include: [ `src/app/modules/${mod}/**/*.spec.ts` ],

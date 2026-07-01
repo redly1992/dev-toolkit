@@ -4,7 +4,7 @@
     "modules": [
       {
         "name": "account-management",
-        "selected": false
+        "selected": true
       },
       {
         "name": "advisor",
@@ -109,7 +109,7 @@
   },
   "authConfig": {
     "version": "0907",
-    "authType": "jwt",
+    "authType": "ldap",
     "baseUrlTemplate": "http://ach-{version}-epic.envmgt.stack02.cloud.able.nv:8080"
   },
   "focusTest": {
