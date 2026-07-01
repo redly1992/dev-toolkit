@@ -7,6 +7,8 @@ import { WORKSPACE_ROOT } from '../utils/runner.mjs';
 
 const AUTH_CONFIG_PATH = resolve( WORKSPACE_ROOT, 'src/authentication.configuration.json' );
 
+const LDAP_BASE_URL = 'http://localhost:3000';
+
 const BASE_URL_TEMPLATES = [
     'http://prod-{version}-epicnl.gui.stack02.cloud.able.nv:8080',
     'http://nn-{version}-epic.envmgt.stack02.cloud.able.nv:8080',
@@ -60,17 +62,18 @@ export default {
         if ( hasSavedData ) {
             const savedBaseUrl = saved.baseUrlTemplate.replace( '{version}', saved.version );
             const otherType    = saved.authType === 'ldap' ? 'jwt' : 'ldap';
+            const otherBaseUrl = otherType === 'ldap' ? LDAP_BASE_URL : savedBaseUrl;
 
             const mode = await select( {
                 message: 'Mode',
                 choices: [
                     {
-                        name:  `Quick Apply — toggle to ${chalk.bold( otherType )}  ${chalk.dim( `v${saved.version} · ${savedBaseUrl}` )}`,
+                        name:  `Quick Apply — toggle to ${chalk.bold( otherType )}  ${chalk.dim( otherType === 'ldap' ? LDAP_BASE_URL : `v${saved.version} · ${savedBaseUrl}` )}`,
                         value: 'quick-toggle',
                         short: `Quick Apply (${otherType})`,
                     },
                     {
-                        name:  `Quick Apply — reapply ${chalk.bold( saved.authType )}  ${chalk.dim( `v${saved.version} · ${savedBaseUrl}` )}`,
+                        name:  `Quick Apply — reapply ${chalk.bold( saved.authType )}  ${chalk.dim( saved.authType === 'ldap' ? LDAP_BASE_URL : `v${saved.version} · ${savedBaseUrl}` )}`,
                         value: 'quick-reapply',
                         short: `Quick Apply (${saved.authType})`,
                     },
@@ -81,7 +84,8 @@ export default {
 
             if ( mode === 'quick-toggle' || mode === 'quick-reapply' ) {
                 const authType      = mode === 'quick-toggle' ? otherType : saved.authType;
-                const newAuthConfig = { baseUrl: savedBaseUrl, ...AUTH_CONFIGS[ authType ] };
+                const baseUrl       = authType === 'ldap' ? LDAP_BASE_URL : savedBaseUrl;
+                const newAuthConfig = { baseUrl, ...AUTH_CONFIGS[ authType ] };
 
                 writeFileSync( AUTH_CONFIG_PATH, JSON.stringify( newAuthConfig, null, 4 ) + '\n', 'utf8' );
                 config.authConfig.authType = authType;
@@ -103,29 +107,35 @@ export default {
             loop: false,
         } );
 
-        // ── 2. Version ────────────────────────────────────────────────────────
-        const version = await input( {
-            message: 'Version',
-            default: saved.version || undefined,
-            placeholder: 'e.g. 0906',
-            validate( v ) {
-                return v.trim().length > 0 ? true : 'Version is required.';
-            },
-        } );
+        // ── 2. Version + Base URL (jwt only) ─────────────────────────────────
+        let version = saved.version;
+        let baseUrl = LDAP_BASE_URL;
+        let baseUrlTemplate = saved.baseUrlTemplate;
 
-        // ── 3. Base URL ───────────────────────────────────────────────────────
-        const baseUrlTemplate = await select( {
-            message: 'Base URL',
-            choices: BASE_URL_TEMPLATES.map( t => {
-                const resolved = t.replace( '{version}', version.trim() );
+        if ( authType === 'jwt' ) {
+            version = await input( {
+                message: 'Version',
+                default: saved.version || undefined,
+                placeholder: 'e.g. 0906',
+                validate( v ) {
+                    return v.trim().length > 0 ? true : 'Version is required.';
+                },
+            } );
 
-                return { name: resolved, value: t, short: resolved };
-            } ),
-            default: saved.baseUrlTemplate || BASE_URL_TEMPLATES[ 0 ],
-            loop: false,
-        } );
+            // ── 3. Base URL ───────────────────────────────────────────────────
+            baseUrlTemplate = await select( {
+                message: 'Base URL',
+                choices: BASE_URL_TEMPLATES.map( t => {
+                    const resolved = t.replace( '{version}', version.trim() );
 
-        const baseUrl = baseUrlTemplate.replace( '{version}', version.trim() );
+                    return { name: resolved, value: t, short: resolved };
+                } ),
+                default: saved.baseUrlTemplate || BASE_URL_TEMPLATES[ 0 ],
+                loop: false,
+            } );
+
+            baseUrl = baseUrlTemplate.replace( '{version}', version.trim() );
+        }
 
         // ── 4. Preview ────────────────────────────────────────────────────────
         const newAuthConfig = {
