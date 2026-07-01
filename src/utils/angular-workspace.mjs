@@ -79,8 +79,20 @@ export async function runNgWithExtensions( args, cwd ) {
         const { execa } = await import( 'execa' );
         const proc = execa( 'npx', [ 'ng', ...args ], {
             cwd,
-            stdio: [ 'inherit', 'pipe', 'inherit' ],
+            stdio:    [ 'inherit', 'pipe', 'inherit' ],
+            detached: false,
         } );
+
+        const killChild = () => {
+            try { process.kill( -proc.pid, 'SIGTERM' ); } catch { /* already dead */ }
+            try { proc.kill( 'SIGTERM' ); } catch { /* already dead */ }
+        };
+
+        const onSigint = () => {
+            killChild();
+            // withAngularExtensions also has a SIGINT handler that restores + exits
+        };
+        process.once( 'SIGINT', onSigint );
 
         proc.stdout.on( 'data', ( chunk ) => {
             const text = chunk.toString();
@@ -88,6 +100,12 @@ export async function runNgWithExtensions( args, cwd ) {
             if ( BUILD_DONE_RE.test( text ) ) restore();
         } );
 
-        await proc;
+        try {
+            await proc;
+        } catch {
+            // killed or test failures — output already shown
+        } finally {
+            process.off( 'SIGINT', onSigint );
+        }
     } );
 }

@@ -26,6 +26,7 @@ const DEFAULT_CONFIG = {
     focusTest: {
         recent: [],
     },
+    recentFeatures: [],
 };
 
 export function readConfig() {
