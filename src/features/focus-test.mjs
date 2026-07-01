@@ -1,11 +1,11 @@
 import { input, select } from '@inquirer/prompts';
 import chalk from 'chalk';
-import { execa } from 'execa';
 import { writeFileSync } from 'fs';
-import { dirname, resolve } from 'path';
+import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { readConfig, writeConfig } from '../utils/config.mjs';
 import { WORKSPACE_ROOT } from '../utils/runner.mjs';
+import { runNgWithExtensions } from '../utils/angular-workspace.mjs';
 
 const MAX_RECENT = 5;
 const TOOLKIT_DIR = resolve( dirname( fileURLToPath( import.meta.url ) ), '../../' );
@@ -119,14 +119,14 @@ export default {
         // ── 5. Run test ───────────────────────────────────────────────────────
         // --configuration focus → lean karma + focused tsconfig
         // --include → esbuild emits only this file's dependency tree
-        const args = [ 'test', '--configuration', 'focus', '--include', filePath ];
+        const testArgs = [ 'test', '--configuration', 'focus', '--include', filePath ];
 
-        console.log( chalk.dim( `  Running: ng ${args.join( ' ' )}\n` ) );
+        console.log( chalk.dim( `  Running: ng ${testArgs.join( ' ' )}\n` ) );
 
         try {
-            await execa( 'npx', [ 'ng', ...args ], { cwd: WORKSPACE_ROOT, stdio: 'inherit' } );
+            await runNgWithExtensions( testArgs, WORKSPACE_ROOT );
         } catch {
-            // ng test exits non-zero on test failures — output already shown via inherit
+            // ng test exits non-zero on failures — output already shown
         }
     },
 };

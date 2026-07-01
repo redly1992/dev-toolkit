@@ -1,0 +1,293 @@
+{
+  "build": {
+    "focus": {
+      "sourceMap": true,
+      "optimization": false,
+      "assets": [
+        "src/favicon.svg",
+        {
+          "glob": "**/*",
+          "input": "src/assets/",
+          "ignore": [
+            "**/*.scss"
+          ],
+          "output": "/assets/"
+        },
+        "src/authentication.configuration.json"
+      ],
+      "fileReplacements": [
+        {
+          "replace": "src/app/app-routing.config.ts",
+          "with": "dev-toolkit/assets/app-routing.focus.config.ts"
+        }
+      ]
+    }
+  },
+  "serve": {
+    "focus": {
+      "buildTarget": "topicus:build:focus"
+    }
+  },
+  "test": {
+    "focus": {
+      "karmaConfig": "dev-toolkit/assets/karma-focus.conf.js",
+      "tsConfig": "dev-toolkit/assets/tsconfig.focus-spec.json"
+    },
+    "account-management": {
+      "include": [
+        "src/app/modules/account-management/**/*.spec.ts"
+      ]
+    },
+    "advisor": {
+      "include": [
+        "src/app/modules/advisor/**/*.spec.ts"
+      ]
+    },
+    "authorisation": {
+      "include": [
+        "src/app/modules/authorisation/**/*.spec.ts"
+      ]
+    },
+    "backoffice": {
+      "include": [
+        "src/app/modules/backoffice/**/*.spec.ts"
+      ]
+    },
+    "configuration": {
+      "include": [
+        "src/app/modules/configuration/**/*.spec.ts"
+      ]
+    },
+    "corporate-actions": {
+      "include": [
+        "src/app/modules/corporate-actions/**/*.spec.ts"
+      ]
+    },
+    "fee-charge": {
+      "include": [
+        "src/app/modules/fee-charge/**/*.spec.ts"
+      ]
+    },
+    "generic-interface": {
+      "include": [
+        "src/app/modules/generic-interface/**/*.spec.ts"
+      ]
+    },
+    "helper": {
+      "include": [
+        "src/app/modules/helper/**/*.spec.ts"
+      ]
+    },
+    "home": {
+      "include": [
+        "src/app/modules/home/**/*.spec.ts"
+      ]
+    },
+    "infront": {
+      "include": [
+        "src/app/modules/infront/**/*.spec.ts"
+      ]
+    },
+    "instrument": {
+      "include": [
+        "src/app/modules/instrument/**/*.spec.ts"
+      ]
+    },
+    "legal-reporting": {
+      "include": [
+        "src/app/modules/legal-reporting/**/*.spec.ts"
+      ]
+    },
+    "margin": {
+      "include": [
+        "src/app/modules/margin/**/*.spec.ts"
+      ]
+    },
+    "midoffice": {
+      "include": [
+        "src/app/modules/midoffice/**/*.spec.ts"
+      ]
+    },
+    "order": {
+      "include": [
+        "src/app/modules/order/**/*.spec.ts"
+      ]
+    },
+    "payments": {
+      "include": [
+        "src/app/modules/payments/**/*.spec.ts"
+      ]
+    },
+    "pension": {
+      "include": [
+        "src/app/modules/pension/**/*.spec.ts"
+      ]
+    },
+    "performance-reportings": {
+      "include": [
+        "src/app/modules/performance-reportings/**/*.spec.ts"
+      ]
+    },
+    "private-banking": {
+      "include": [
+        "src/app/modules/private-banking/**/*.spec.ts"
+      ]
+    },
+    "recon": {
+      "include": [
+        "src/app/modules/recon/**/*.spec.ts"
+      ]
+    },
+    "settings": {
+      "include": [
+        "src/app/modules/settings/**/*.spec.ts"
+      ]
+    },
+    "settlement": {
+      "include": [
+        "src/app/modules/settlement/**/*.spec.ts"
+      ]
+    },
+    "transaction": {
+      "include": [
+        "src/app/modules/transaction/**/*.spec.ts"
+      ]
+    },
+    "wealth": {
+      "include": [
+        "src/app/modules/wealth/**/*.spec.ts"
+      ]
+    }
+  },
+  "test-dev": {
+    "focus": {
+      "karmaConfig": "dev-toolkit/assets/karma-focus.conf.js",
+      "tsConfig": "dev-toolkit/assets/tsconfig.focus-spec.json"
+    },
+    "account-management": {
+      "include": [
+        "src/app/modules/account-management/**/*.spec.ts"
+      ]
+    },
+    "advisor": {
+      "include": [
+        "src/app/modules/advisor/**/*.spec.ts"
+      ]
+    },
+    "authorisation": {
+      "include": [
+        "src/app/modules/authorisation/**/*.spec.ts"
+      ]
+    },
+    "backoffice": {
+      "include": [
+        "src/app/modules/backoffice/**/*.spec.ts"
+      ]
+    },
+    "configuration": {
+      "include": [
+        "src/app/modules/configuration/**/*.spec.ts"
+      ]
+    },
+    "corporate-actions": {
+      "include": [
+        "src/app/modules/corporate-actions/**/*.spec.ts"
+      ]
+    },
+    "fee-charge": {
+      "include": [
+        "src/app/modules/fee-charge/**/*.spec.ts"
+      ]
+    },
+    "generic-interface": {
+      "include": [
+        "src/app/modules/generic-interface/**/*.spec.ts"
+      ]
+    },
+    "helper": {
+      "include": [
+        "src/app/modules/helper/**/*.spec.ts"
+      ]
+    },
+    "home": {
+      "include": [
+        "src/app/modules/home/**/*.spec.ts"
+      ]
+    },
+    "infront": {
+      "include": [
+        "src/app/modules/infront/**/*.spec.ts"
+      ]
+    },
+    "instrument": {
+      "include": [
+        "src/app/modules/instrument/**/*.spec.ts"
+      ]
+    },
+    "legal-reporting": {
+      "include": [
+        "src/app/modules/legal-reporting/**/*.spec.ts"
+      ]
+    },
+    "margin": {
+      "include": [
+        "src/app/modules/margin/**/*.spec.ts"
+      ]
+    },
+    "midoffice": {
+      "include": [
+        "src/app/modules/midoffice/**/*.spec.ts"
+      ]
+    },
+    "order": {
+      "include": [
+        "src/app/modules/order/**/*.spec.ts"
+      ]
+    },
+    "payments": {
+      "include": [
+        "src/app/modules/payments/**/*.spec.ts"
+      ]
+    },
+    "pension": {
+      "include": [
+        "src/app/modules/pension/**/*.spec.ts"
+      ]
+    },
+    "performance-reportings": {
+      "include": [
+        "src/app/modules/performance-reportings/**/*.spec.ts"
+      ]
+    },
+    "private-banking": {
+      "include": [
+        "src/app/modules/private-banking/**/*.spec.ts"
+      ]
+    },
+    "recon": {
+      "include": [
+        "src/app/modules/recon/**/*.spec.ts"
+      ]
+    },
+    "settings": {
+      "include": [
+        "src/app/modules/settings/**/*.spec.ts"
+      ]
+    },
+    "settlement": {
+      "include": [
+        "src/app/modules/settlement/**/*.spec.ts"
+      ]
+    },
+    "transaction": {
+      "include": [
+        "src/app/modules/transaction/**/*.spec.ts"
+      ]
+    },
+    "wealth": {
+      "include": [
+        "src/app/modules/wealth/**/*.spec.ts"
+      ]
+    }
+  }
+}

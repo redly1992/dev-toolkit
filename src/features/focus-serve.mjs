@@ -1,9 +1,9 @@
 import { checkbox, select } from '@inquirer/prompts';
 import chalk from 'chalk';
 import { readConfig, writeConfig } from '../utils/config.mjs';
-import { runInWorkspace, WORKSPACE_ROOT } from '../utils/runner.mjs';
-import { resolve } from 'path';
-import { dirname } from 'path';
+import { WORKSPACE_ROOT } from '../utils/runner.mjs';
+import { runNgWithExtensions } from '../utils/angular-workspace.mjs';
+import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { writeFileSync, readFileSync } from 'fs';
 
@@ -80,6 +80,6 @@ export default {
         generateFocusRoutes( chosen );
         console.log( chalk.dim( `  Running: ng serve --configuration focus\n` ) );
 
-        await runInWorkspace( 'npx', [ 'ng', 'serve', '--configuration', 'focus' ] );
+        await runNgWithExtensions( [ 'serve', '--configuration', 'focus' ], WORKSPACE_ROOT );
     },
 };
