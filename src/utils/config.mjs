@@ -25,6 +25,7 @@ const DEFAULT_CONFIG = {
     },
     focusTest: {
         recent: [],
+        browserMode: 'headless',
     },
     recentFeatures: [],
 };

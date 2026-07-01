@@ -60,39 +60,61 @@ export default {
     async run() {
         const config = readConfig();
 
-        if ( !config.focusTest ) config.focusTest = { recent: [] };
+        if ( !config.focusTest ) config.focusTest = { recent: [], browserMode: 'headless' };
+        if ( !config.focusTest.browserMode ) config.focusTest.browserMode = 'headless';
 
         const recent = config.focusTest.recent ?? [];
 
-        // ── 1. File path input ────────────────────────────────────────────────
+        // ── 1. File path input (with browser mode config at bottom) ───────────
         let filePath;
+        const ENTER_NEW = '__new__';
+        const BROWSER_CONFIG = '__browser_config__';
 
-        if ( recent.length > 0 ) {
-            const ENTER_NEW = '__new__';
-            const choice = await select( {
-                message: 'Spec file',
-                choices: [
-                    ...recent.map( p => {
-                        const mod = detectModule( p );
+        while ( !filePath ) {
+            if ( recent.length > 0 ) {
+                const modeLabel = config.focusTest.browserMode === 'chrome'
+                    ? 'Chrome (visible window)'
+                    : 'Headless Chrome (fast)';
+                const choice = await select( {
+                    message: 'Spec file',
+                    choices: [
+                        ...recent.map( p => {
+                            const mod = detectModule( p );
 
-                        return {
-                            name:  `${p}  ${mod ? chalk.dim( `[${mod}]` ) : ''}`,
-                            value: p,
-                            short: p,
-                        };
-                    } ),
-                    { name: chalk.dim( '↳ Enter a different path…' ), value: ENTER_NEW, short: 'New path' },
-                ],
-                loop: false,
-            } );
+                            return {
+                                name:  `${p}  ${mod ? chalk.dim( `[${mod}]` ) : ''}`,
+                                value: p,
+                                short: p,
+                            };
+                        } ),
+                        { name: chalk.dim( '↳ Enter a different path…' ), value: ENTER_NEW, short: 'New path' },
+                        { name: chalk.dim( `⚙ Browser mode: ${modeLabel}` ), value: BROWSER_CONFIG, short: 'Browser mode' },
+                    ],
+                    loop: false,
+                } );
 
-            if ( choice === ENTER_NEW ) {
-                filePath = await promptPath();
+                if ( choice === BROWSER_CONFIG ) {
+                    config.focusTest.browserMode = await select( {
+                        message: 'Browser mode',
+                        choices: [
+                            { name: 'Headless Chrome (fast)', value: 'headless' },
+                            { name: 'Chrome (visible window)', value: 'chrome' },
+                        ],
+                        default: config.focusTest.browserMode,
+                        loop: false,
+                    } );
+                    writeConfig( config );
+                    continue;
+                }
+
+                if ( choice === ENTER_NEW ) {
+                    filePath = await promptPath();
+                } else {
+                    filePath = choice;
+                }
             } else {
-                filePath = choice;
+                filePath = await promptPath();
             }
-        } else {
-            filePath = await promptPath();
         }
 
         filePath = normalisePath( filePath, WORKSPACE_ROOT );
@@ -119,7 +141,8 @@ export default {
         // ── 5. Run test ───────────────────────────────────────────────────────
         // --configuration focus → lean karma + focused tsconfig
         // --include → esbuild emits only this file's dependency tree
-        const testArgs = [ 'test', '--configuration', 'focus', '--include', filePath ];
+        const browser = config.focusTest.browserMode === 'chrome' ? 'Chrome' : 'CustomHeadlessChrome';
+        const testArgs = [ 'test', '--configuration', 'focus', '--include', filePath, '--browsers', browser ];
 
         console.log( chalk.dim( `  Running: ng ${testArgs.join( ' ' )}\n` ) );
 

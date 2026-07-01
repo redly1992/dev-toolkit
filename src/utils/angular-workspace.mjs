@@ -29,6 +29,7 @@ const ANGULAR_JSON = resolve( WORKSPACE_ROOT, 'angular.json' );
 const EXTENSIONS   = resolve( TOOLKIT_DIR, 'assets/angular-extensions.json' );
 
 const BUILD_DONE_RE = /bundle generation complete/i;
+const TEST_HEAP_MB  = '8192';
 
 function mergeConfigurations( target, additions ) {
     if ( !additions ) return;
@@ -46,8 +47,8 @@ export async function withAngularExtensions( fn ) {
         writeFileSync( ANGULAR_JSON, original, 'utf8' );
     };
 
-    // Trap Ctrl+C: restore before the process exits
-    const onSigint = () => { restore(); process.exit( 0 ); };
+    // Trap Ctrl+C: restore early; child-kill handled by runner.
+    const onSigint = () => { restore(); };
     process.once( 'SIGINT', onSigint );
 
     try {
@@ -77,15 +78,30 @@ export async function withAngularExtensions( fn ) {
 export async function runNgWithExtensions( args, cwd ) {
     await withAngularExtensions( async ( restore ) => {
         const { execa } = await import( 'execa' );
+        const isTest = args[ 0 ] === 'test';
+        const existingNodeOptions = process.env.NODE_OPTIONS ?? '';
+        const hasHeapOption = /--max-old-space-size=\d+/.test( existingNodeOptions );
+        const nodeOptions = ( isTest && !hasHeapOption )
+            ? `${existingNodeOptions} --max-old-space-size=${TEST_HEAP_MB}`.trim()
+            : existingNodeOptions;
         const proc = execa( 'npx', [ 'ng', ...args ], {
             cwd,
             stdio:    [ 'inherit', 'pipe', 'inherit' ],
             detached: false,
+            env: {
+                ...process.env,
+                NODE_OPTIONS: nodeOptions,
+            },
         } );
 
         const killChild = () => {
             try { process.kill( -proc.pid, 'SIGTERM' ); } catch { /* already dead */ }
             try { proc.kill( 'SIGTERM' ); } catch { /* already dead */ }
+            // Some children ignore SIGTERM (Chrome/Karma). Hard-stop fallback.
+            setTimeout( () => {
+                try { process.kill( -proc.pid, 'SIGKILL' ); } catch { /* already dead */ }
+                try { proc.kill( 'SIGKILL' ); } catch { /* already dead */ }
+            }, 1000 );
         };
 
         const onSigint = () => {

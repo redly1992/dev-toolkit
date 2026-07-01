@@ -108,17 +108,20 @@
     "baseBranch": "origin/integration/09.07"
   },
   "authConfig": {
-    "version": "0907",
+    "version": "0906",
     "authType": "ldap",
-    "baseUrlTemplate": "http://ach-{version}-epic.envmgt.stack02.cloud.able.nv:8080"
+    "baseUrlTemplate": "http://ing-{version}-epic.envmgt.stack02.cloud.able.nv:8080"
   },
   "focusTest": {
     "recent": [
-      "src/app/modules/account-management/parties/modules/add-party/components/party-form/party-form.component.spec.ts",
-      "src/app/modules/account-management/parties/components/party/party.component.spec.ts"
-    ]
+      "src/app/modules/account-management/parties/components/party/party.component.spec.ts",
+      "src/app/modules/account-management/parties/modules/add-party/components/party-form/party-form.component.spec.ts"
+    ],
+    "browserMode": "headless"
   },
   "recentFeatures": [
-    "Focus Test"
+    "Focus Test",
+    "Auth Config",
+    "Focus Serve"
   ]
 }
