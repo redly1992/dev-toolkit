@@ -22,10 +22,15 @@ const DEFAULT_CONFIG = {
         version: '',
         authType: 'ldap',
         baseUrlTemplate: 'http://prod-{version}-epicnl.gui.stack02.cloud.able.nv:8080',
+        recentVersions: [],
     },
     focusTest: {
         recent: [],
         browserMode: 'headless',
+    },
+    serverCheck: {
+        selectedVersions: [],
+        selectedTemplates: [],
     },
     recentFeatures: [],
 };

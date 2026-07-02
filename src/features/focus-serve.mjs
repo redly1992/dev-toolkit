@@ -5,11 +5,12 @@ import { WORKSPACE_ROOT } from '../utils/runner.mjs';
 import { runNgWithExtensions } from '../utils/angular-workspace.mjs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { writeFileSync, readFileSync } from 'fs';
+import { writeFileSync, readFileSync, readdirSync } from 'fs';
 
 const TOOLKIT_DIR  = resolve( dirname( fileURLToPath( import.meta.url ) ), '../../' );
 const ROUTING_SRC  = 'src/app/app-routing.config.ts';
 const ROUTING_DEST = resolve( TOOLKIT_DIR, 'assets/app-routing.focus.config.ts' );
+const MODULES_DIR  = resolve( WORKSPACE_ROOT, 'src/app/modules' );
 
 const LAZY_ROUTE_RE = /loadChildren:\s*\(\)\s*=>\s*import\(\s*['"][^'"]*\/modules\/([^\/'"]+)[^'"]*['"]\s*\)[\s\S]*?\.then\(\s*\w+\s*=>\s*\w+\.\w+\s*\)/g;
 
@@ -28,14 +29,33 @@ function generateFocusRoutes( selectedModules ) {
     writeFileSync( ROUTING_DEST, out, 'utf8' );
 }
 
+function getWorkspaceModules() {
+    return readdirSync( MODULES_DIR, { withFileTypes: true } )
+        .filter( entry => entry.isDirectory() )
+        .map( entry => entry.name )
+        .sort();
+}
+
+function syncModules( modules ) {
+    const selectedByName = new Map( modules.map( m => [ m.name, !!m.selected ] ) );
+    const workspaceModules = getWorkspaceModules();
+
+    return workspaceModules.map( name => ( {
+        name,
+        selected: selectedByName.get( name ) ?? false,
+    } ) );
+}
+
 /** @type {import('../index.mjs').Feature} */
 export default {
     name: 'Focus Serve',
     description: 'Start ng serve with only selected modules compiled',
 
     async run() {
-        const config  = readConfig();
-        const modules = config.focusServe.modules;
+        const config = readConfig();
+        const modules = syncModules( config.focusServe.modules ?? [] );
+        config.focusServe.modules = modules;
+        writeConfig( config );
 
         console.log( chalk.cyan( '\n  Select modules to include in the build.\n' ) );
         console.log( chalk.dim( '  Space to toggle  ·  a to toggle all  ·  Enter to confirm\n' ) );
@@ -47,7 +67,7 @@ export default {
                 value:   m.name,
                 checked: m.selected,
             } ) ),
-            pageSize: 20,
+            pageSize: modules.length + 2,
             loop: false,
             validate( answers ) {
                 if ( answers.length === 0 ) return 'Select at least one module.';
@@ -69,12 +89,11 @@ export default {
             choices: [
                 { name: 'Start ng serve (focus mode)',   value: 'serve' },
                 { name: 'Save selection only',           value: 'save'  },
-                { name: chalk.dim( '← Back to main menu' ), value: 'back', short: 'Back' },
             ],
             loop: false,
         } );
 
-        if ( action === 'back' || action === 'save' ) return;
+        if ( action === 'save' ) return;
 
         console.log( chalk.dim( '\n  Generating focused routing file…' ) );
         generateFocusRoutes( chosen );

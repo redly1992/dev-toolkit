@@ -21,6 +21,7 @@ import focusServe   from './features/focus-serve.mjs';
 import focusTest    from './features/focus-test.mjs';
 import createBranch from './features/create-branch.mjs';
 import authConfig   from './features/auth-config.mjs';
+import findServerAvailable from './features/find-server-available.mjs';
 
 /** @typedef {{ name: string, description: string, run(): Promise<void> }} Feature */
 
@@ -31,6 +32,7 @@ const FEATURES = [
     focusTest,
     createBranch,
     authConfig,
+    findServerAvailable,
     // add new features here ↓
 ];
 // ─────────────────────────────────────────────────────────────────────────────

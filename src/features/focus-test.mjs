@@ -94,7 +94,7 @@ export default {
                 } );
 
                 if ( choice === BROWSER_CONFIG ) {
-                    config.focusTest.browserMode = await select( {
+                    const pickedMode = await select( {
                         message: 'Browser mode',
                         choices: [
                             { name: 'Headless Chrome (fast)', value: 'headless' },
@@ -103,6 +103,7 @@ export default {
                         default: config.focusTest.browserMode,
                         loop: false,
                     } );
+                    config.focusTest.browserMode = pickedMode;
                     writeConfig( config );
                     continue;
                 }

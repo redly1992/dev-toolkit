@@ -1,4 +1,4 @@
-import { input, select, confirm } from '@inquirer/prompts';
+import { input, select } from '@inquirer/prompts';
 import chalk from 'chalk';
 import { readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
@@ -8,6 +8,7 @@ import { WORKSPACE_ROOT } from '../utils/runner.mjs';
 const AUTH_CONFIG_PATH = resolve( WORKSPACE_ROOT, 'src/authentication.configuration.json' );
 
 const LDAP_BASE_URL = 'http://localhost:3000';
+const MAX_RECENT_VERSIONS = 5;
 
 const BASE_URL_TEMPLATES = [
     'http://prod-{version}-epicnl.gui.stack02.cloud.able.nv:8080',
@@ -45,6 +46,36 @@ const AUTH_CONFIGS = {
     },
 };
 
+async function pickJwtVersion( savedVersion, recentVersions ) {
+    const ENTER_NEW = '__new__';
+    const options = [
+        ...recentVersions.map( version => ( {
+            name:  version,
+            value: version,
+            short: version,
+        } ) ),
+        { name: chalk.dim( '↳ Enter a different version…' ), value: ENTER_NEW, short: 'New version' },
+    ];
+
+    const selected = await select( {
+        message: 'JWT version',
+        choices: options,
+        default: savedVersion || undefined,
+        loop: false,
+    } );
+
+    if ( selected !== ENTER_NEW ) return selected;
+
+    return input( {
+        message: 'JWT version',
+        default: savedVersion || undefined,
+        placeholder: 'e.g. 0906',
+        validate( value ) {
+            return value.trim().length > 0 ? true : 'Version is required.';
+        },
+    } );
+}
+
 /** @type {import('../index.mjs').Feature} */
 export default {
     name: 'Auth Config',
@@ -53,111 +84,88 @@ export default {
     async run() {
         const config = readConfig();
 
-        if ( !config.authConfig ) config.authConfig = { version: '', authType: 'ldap', baseUrlTemplate: BASE_URL_TEMPLATES[ 0 ] };
+        if ( !config.authConfig ) {
+            config.authConfig = {
+                version: '',
+                authType: 'ldap',
+                baseUrlTemplate: BASE_URL_TEMPLATES[ 0 ],
+                recentVersions: [],
+            };
+        }
 
         const saved = config.authConfig;
-        const hasSavedData = !!( saved.version && saved.baseUrlTemplate );
 
-        // ── Quick Apply (only when saved data exists) ─────────────────────────
-        if ( hasSavedData ) {
-            const savedBaseUrl = saved.baseUrlTemplate.replace( '{version}', saved.version );
-            const otherType    = saved.authType === 'ldap' ? 'jwt' : 'ldap';
-            const otherBaseUrl = otherType === 'ldap' ? LDAP_BASE_URL : savedBaseUrl;
+        if ( !saved.recentVersions ) saved.recentVersions = saved.version ? [ saved.version ] : [];
 
+        while ( true ) {
             const mode = await select( {
-                message: 'Mode',
+                message: 'Auth mode',
                 choices: [
+                    { name: `Apply ldap ${chalk.dim( LDAP_BASE_URL )}`, value: 'ldap' },
                     {
-                        name:  `Quick Apply — toggle to ${chalk.bold( otherType )}  ${chalk.dim( otherType === 'ldap' ? LDAP_BASE_URL : `v${saved.version} · ${savedBaseUrl}` )}`,
-                        value: 'quick-toggle',
-                        short: `Quick Apply (${otherType})`,
+                        name: `Apply jwt ${chalk.dim( saved.version ? `v${saved.version} · ${saved.baseUrlTemplate.replace( '{version}', saved.version )}` : '(set version first)' )}`,
+                        value: 'jwt',
                     },
-                    {
-                        name:  `Quick Apply — reapply ${chalk.bold( saved.authType )}  ${chalk.dim( saved.authType === 'ldap' ? LDAP_BASE_URL : `v${saved.version} · ${savedBaseUrl}` )}`,
-                        value: 'quick-reapply',
-                        short: `Quick Apply (${saved.authType})`,
-                    },
-                    { name: 'Configure — change settings', value: 'configure', short: 'Configure' },
+                    { name: `Configure jwt URL ${chalk.dim( saved.version ? `(v${saved.version})` : '(set version first)' )}`, value: 'jwt-url' },
+                    { name: `Set jwt version ${chalk.dim( saved.version || '(not set)' )}`, value: 'set-version' },
                 ],
+                default: saved.authType || 'ldap',
                 loop: false,
             } );
 
-            if ( mode === 'quick-toggle' || mode === 'quick-reapply' ) {
-                const authType      = mode === 'quick-toggle' ? otherType : saved.authType;
-                const baseUrl       = authType === 'ldap' ? LDAP_BASE_URL : savedBaseUrl;
-                const newAuthConfig = { baseUrl, ...AUTH_CONFIGS[ authType ] };
-
-                writeFileSync( AUTH_CONFIG_PATH, JSON.stringify( newAuthConfig, null, 4 ) + '\n', 'utf8' );
-                config.authConfig.authType = authType;
+            if ( mode === 'set-version' ) {
+                const pickedVersion = await pickJwtVersion( saved.version, saved.recentVersions );
+                const version = pickedVersion.trim();
+                config.authConfig.version = version;
+                config.authConfig.recentVersions = [ version, ...saved.recentVersions.filter( v => v !== version ) ]
+                    .slice( 0, MAX_RECENT_VERSIONS );
                 writeConfig( config );
-                console.log( chalk.bold.green( `\n  ✔ authentication.configuration.json updated (${authType})\n` ) );
-
-                return;
+                saved.version = version;
+                saved.recentVersions = config.authConfig.recentVersions;
+                console.log( chalk.bold.green( `\n  ✔ jwt version saved (${version})\n` ) );
+                continue;
             }
+
+            let authType = mode;
+            let version = saved.version;
+            let baseUrlTemplate = saved.baseUrlTemplate || BASE_URL_TEMPLATES[ 0 ];
+            let baseUrl = LDAP_BASE_URL;
+
+            if ( mode === 'jwt' || mode === 'jwt-url' ) {
+                if ( !version ) {
+                    const pickedVersion = await pickJwtVersion( saved.version, saved.recentVersions );
+                    version = pickedVersion.trim();
+                    config.authConfig.version = version;
+                    config.authConfig.recentVersions = [ version, ...saved.recentVersions.filter( v => v !== version ) ]
+                        .slice( 0, MAX_RECENT_VERSIONS );
+                }
+                if ( mode === 'jwt-url' ) {
+                    baseUrlTemplate = await select( {
+                        message: 'Base URL',
+                        choices: BASE_URL_TEMPLATES.map( template => {
+                            const resolved = template.replace( '{version}', version );
+                            return { name: resolved, value: template, short: resolved };
+                        } ),
+                        default: saved.baseUrlTemplate || BASE_URL_TEMPLATES[ 0 ],
+                        loop: false,
+                    } );
+                }
+                baseUrl = baseUrlTemplate.replace( '{version}', version );
+                authType = 'jwt';
+            }
+
+            const newAuthConfig = { baseUrl, ...AUTH_CONFIGS[ authType ] };
+            writeFileSync( AUTH_CONFIG_PATH, JSON.stringify( newAuthConfig, null, 4 ) + '\n', 'utf8' );
+            config.authConfig = {
+                ...config.authConfig,
+                version: version.trim(),
+                authType,
+                baseUrlTemplate,
+            };
+            writeConfig( config );
+
+            console.log( chalk.bold.green( `\n  ✔ authentication.configuration.json updated (${authType})\n` ) );
+            return;
         }
-
-        // ── 1. Auth type ──────────────────────────────────────────────────────
-        const authType = await select( {
-            message: 'Auth type',
-            choices: [
-                { name: 'ldap', value: 'ldap' },
-                { name: 'jwt',  value: 'jwt'  },
-            ],
-            default: saved.authType || 'ldap',
-            loop: false,
-        } );
-
-        // ── 2. Version + Base URL (jwt only) ─────────────────────────────────
-        let version = saved.version;
-        let baseUrl = LDAP_BASE_URL;
-        let baseUrlTemplate = saved.baseUrlTemplate;
-
-        if ( authType === 'jwt' ) {
-            version = await input( {
-                message: 'Version',
-                default: saved.version || undefined,
-                placeholder: 'e.g. 0906',
-                validate( v ) {
-                    return v.trim().length > 0 ? true : 'Version is required.';
-                },
-            } );
-
-            // ── 3. Base URL ───────────────────────────────────────────────────
-            baseUrlTemplate = await select( {
-                message: 'Base URL',
-                choices: BASE_URL_TEMPLATES.map( t => {
-                    const resolved = t.replace( '{version}', version.trim() );
-
-                    return { name: resolved, value: t, short: resolved };
-                } ),
-                default: saved.baseUrlTemplate || BASE_URL_TEMPLATES[ 0 ],
-                loop: false,
-            } );
-
-            baseUrl = baseUrlTemplate.replace( '{version}', version.trim() );
-        }
-
-        // ── 4. Preview ────────────────────────────────────────────────────────
-        const newAuthConfig = {
-            baseUrl,
-            ...AUTH_CONFIGS[ authType ],
-        };
-
-        console.log( '' );
-        console.log( chalk.dim( '  Preview:' ) );
-        console.log( chalk.dim( JSON.stringify( newAuthConfig, null, 2 ).replace( /^/gm, '  ' ) ) );
-        console.log( '' );
-
-        const ok = await confirm( { message: 'Write to authentication.configuration.json?', default: true } );
-        if ( !ok ) return;
-
-        // ── 5. Write auth file ────────────────────────────────────────────────
-        writeFileSync( AUTH_CONFIG_PATH, JSON.stringify( newAuthConfig, null, 4 ) + '\n', 'utf8' );
-
-        // ── 6. Persist config ─────────────────────────────────────────────────
-        config.authConfig = { version: version.trim(), authType, baseUrlTemplate };
-        writeConfig( config );
-
-        console.log( chalk.bold.green( '\n  ✔ authentication.configuration.json updated\n' ) );
     },
 };

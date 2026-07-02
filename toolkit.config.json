@@ -96,7 +96,7 @@
       },
       {
         "name": "transaction",
-        "selected": false
+        "selected": true
       },
       {
         "name": "wealth",
@@ -108,20 +108,39 @@
     "baseBranch": "origin/integration/09.07"
   },
   "authConfig": {
-    "version": "0906",
-    "authType": "ldap",
-    "baseUrlTemplate": "http://ing-{version}-epic.envmgt.stack02.cloud.able.nv:8080"
+    "version": "0907",
+    "authType": "jwt",
+    "baseUrlTemplate": "http://nn-{version}-epic.envmgt.stack02.cloud.able.nv:8080",
+    "recentVersions": [
+      "0907",
+      "0908",
+      "0906"
+    ]
   },
   "focusTest": {
     "recent": [
+      "src/app/modules/transaction/overview/components/transaction-detail-panel/transaction-detail-panel.component.spec.ts",
       "src/app/modules/account-management/parties/components/party/party.component.spec.ts",
       "src/app/modules/account-management/parties/modules/add-party/components/party-form/party-form.component.spec.ts"
     ],
     "browserMode": "headless"
   },
   "recentFeatures": [
-    "Focus Test",
-    "Auth Config",
-    "Focus Serve"
-  ]
+    "Focus Serve",
+    "Create Branch",
+    "Find Server Available"
+  ],
+  "serverCheck": {
+    "selectedVersions": [
+      "0907",
+      "0906"
+    ],
+    "selectedTemplates": [
+      "http://prod-{version}-epicnl.gui.stack02.cloud.able.nv:8080",
+      "http://nn-{version}-epic.envmgt.stack02.cloud.able.nv:8080",
+      "http://ach-{version}-epic.envmgt.stack02.cloud.able.nv:8080",
+      "http://ing-{version}-epic.envmgt.stack02.cloud.able.nv:8080",
+      "http://aab-{version}-epic.envmgt.stack02.cloud.able.nv:8081"
+    ]
+  }
 }
