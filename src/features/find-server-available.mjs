@@ -13,6 +13,8 @@ const BASE_URL_TEMPLATES = [
 
 const ENDPOINT_PATH = '/general/entity';
 const REQUEST_TIMEOUT_SECONDS = 5;
+const RETRY_DELAY_MIN_MS = 1000;
+const RETRY_DELAY_MAX_MS = 2000;
 
 function createHeaders( endpoint ) {
     const baseUrl = endpoint.replace( ENDPOINT_PATH, '' );
@@ -53,23 +55,36 @@ async function checkEndpoint( endpoint ) {
     try {
         const result = await execa( 'curl', args );
         const statusCode = Number( result.stdout.trim() ) || 0;
-
-        return {
-            endpoint,
-            ok: true,
-            status: statusCode,
-            statusText: 'HTTP',
-        };
+        return { endpoint, ok: statusCode > 0, status: statusCode };
     } catch ( error ) {
         const output = `${error?.stdout ?? ''}`.trim();
         const statusCode = Number( output ) || 0;
-        return {
-            endpoint,
-            ok: statusCode > 0,
-            status: statusCode,
-            statusText: statusCode > 0 ? 'HTTP' : ( error?.shortMessage ?? error?.message ?? 'curl failed' ),
-        };
+        return { endpoint, ok: statusCode > 0, status: statusCode };
     }
+}
+
+function randomRetryDelayMs() {
+    return Math.floor( Math.random() * ( RETRY_DELAY_MAX_MS - RETRY_DELAY_MIN_MS + 1 ) ) + RETRY_DELAY_MIN_MS;
+}
+
+function sleep( ms ) {
+    return new Promise( resolve => setTimeout( resolve, ms ) );
+}
+
+async function checkEndpointWithRetry( endpoint ) {
+    const first = await checkEndpoint( endpoint );
+    if ( first.ok ) return { ...first, attempts: 1, retried: false };
+
+    const delay = randomRetryDelayMs();
+    await sleep( delay );
+
+    const second = await checkEndpoint( endpoint );
+    return {
+        ...second,
+        attempts: 2,
+        retried: true,
+        recovered: second.ok,
+    };
 }
 
 /** @type {import('../index.mjs').Feature} */
@@ -138,20 +153,23 @@ export default {
 
         console.log( chalk.dim( `\n  Checking ${endpoints.length} endpoints...\n` ) );
 
-        const results = await Promise.all( endpoints.map( checkEndpoint ) );
+        const results = await Promise.all( endpoints.map( checkEndpointWithRetry ) );
         const ok = results.filter( result => result.ok );
         const failed = results.filter( result => !result.ok );
+        const retried = results.filter( result => result.retried );
+        const recovered = results.filter( result => result.recovered );
 
-        for ( const result of ok ) {
-            console.log( chalk.green( `  ✔ ${result.endpoint}  [${result.status} ${result.statusText}]` ) );
-        }
-        for ( const result of failed ) {
-            const status = result.status ? `${result.status} ${result.statusText}` : result.statusText;
-            console.log( chalk.red( `  ✖ ${result.endpoint}  [${status}]` ) );
-        }
-
-        console.log( '' );
         console.log( chalk.bold( `  Available: ${ok.length}/${results.length}` ) );
+        console.log( chalk.dim( `  Retried: ${retried.length}  ·  Recovered after retry: ${recovered.length}` ) );
+
+        if ( failed.length > 0 ) {
+            console.log( '' );
+            console.log( chalk.red( `  Unavailable endpoints (${failed.length}):` ) );
+            for ( const result of failed ) {
+                const status = result.status > 0 ? `HTTP ${result.status}` : 'UNREACHABLE';
+                console.log( chalk.red( `  ✖ ${result.endpoint}  [${status}]` ) );
+            }
+        }
         console.log( '' );
     },
 };

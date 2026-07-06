@@ -109,7 +109,7 @@
   },
   "authConfig": {
     "version": "0907",
-    "authType": "jwt",
+    "authType": "ldap",
     "baseUrlTemplate": "http://ing-{version}-epic.envmgt.stack02.cloud.able.nv:8080",
     "recentVersions": [
       "0907",
@@ -119,6 +119,7 @@
   },
   "focusTest": {
     "recent": [
+      "src/app/modules/account-management/parties/modules/details/components/party-details/party-details.component.spec.ts",
       "src/app/modules/transaction/overview/components/transaction-detail-panel/transaction-detail-panel.component.spec.ts",
       "src/app/modules/account-management/parties/components/party/party.component.spec.ts",
       "src/app/modules/account-management/parties/modules/add-party/components/party-form/party-form.component.spec.ts"
@@ -126,8 +127,8 @@
     "browserMode": "headless"
   },
   "recentFeatures": [
-    "Auth Config",
     "Focus Serve",
+    "Auth Config",
     "Find Server Available"
   ],
   "serverCheck": {
