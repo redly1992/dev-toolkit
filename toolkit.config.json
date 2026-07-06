@@ -96,7 +96,7 @@
       },
       {
         "name": "transaction",
-        "selected": true
+        "selected": false
       },
       {
         "name": "wealth",
@@ -110,7 +110,7 @@
   "authConfig": {
     "version": "0907",
     "authType": "jwt",
-    "baseUrlTemplate": "http://nn-{version}-epic.envmgt.stack02.cloud.able.nv:8080",
+    "baseUrlTemplate": "http://ing-{version}-epic.envmgt.stack02.cloud.able.nv:8080",
     "recentVersions": [
       "0907",
       "0908",
@@ -126,8 +126,8 @@
     "browserMode": "headless"
   },
   "recentFeatures": [
+    "Auth Config",
     "Focus Serve",
-    "Create Branch",
     "Find Server Available"
   ],
   "serverCheck": {
