@@ -162,6 +162,14 @@ export default {
         console.log( chalk.bold( `  Available: ${ok.length}/${results.length}` ) );
         console.log( chalk.dim( `  Retried: ${retried.length}  ·  Recovered after retry: ${recovered.length}` ) );
 
+        if ( ok.length > 0 ) {
+            console.log( '' );
+            console.log( chalk.green( `  Available endpoints (${ok.length}):` ) );
+            for ( const result of ok ) {
+                console.log( chalk.green( `  ✔ ${result.endpoint}  [HTTP ${result.status}]` ) );
+            }
+        }
+
         if ( failed.length > 0 ) {
             console.log( '' );
             console.log( chalk.red( `  Unavailable endpoints (${failed.length}):` ) );

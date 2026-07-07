@@ -11,12 +11,19 @@ const MAX_RECENT = 5;
 const TOOLKIT_DIR = resolve( dirname( fileURLToPath( import.meta.url ) ), '../../' );
 const TSCONFIG_FOCUS_PATH = resolve( TOOLKIT_DIR, 'assets/tsconfig.focus-spec.json' );
 
+function isSpecFilePath( targetPath ) {
+    return targetPath.includes( '.spec.ts' );
+}
+
+function normaliseFolderPath( targetPath ) {
+    return targetPath.replace( /\/+$/, '' );
+}
+
 /**
- * Generate a minimal tsconfig that only includes the target spec file.
+ * Generate minimal tsconfig that includes only target file/folder specs.
  * Lives in dev-toolkit/assets/ — paths are relative to that location.
- * This stops TypeScript from type-checking ALL spec files in the project.
  */
-function writeFocusTsConfig( specFilePath ) {
+function writeFocusTsConfig( targetPath ) {
     const tsconfig = {
         extends: '../../tsconfig.json',
         compilerOptions: {
@@ -26,9 +33,18 @@ function writeFocusTsConfig( specFilePath ) {
         files: [
             '../../src/test.ts',
             '../../src/polyfills.ts',
-            `../../${specFilePath}`,
+            '../../src/tests/custom-matchers.ts',
+            '../../src/custom-matchers.d.ts',
         ],
     };
+
+    if ( isSpecFilePath( targetPath ) ) {
+        tsconfig.files.push( `../../${targetPath}` );
+    } else {
+        const folderPath = normaliseFolderPath( targetPath );
+        tsconfig.include = [ `../../${folderPath}/**/*.spec.ts` ];
+    }
+
     writeFileSync( TSCONFIG_FOCUS_PATH, JSON.stringify( tsconfig, null, 2 ) + '\n', 'utf8' );
 }
 
@@ -55,7 +71,7 @@ function normalisePath( filePath, workspaceRoot ) {
 /** @type {import('../index.mjs').Feature} */
 export default {
     name: 'Focus Test',
-    description: 'Run ng test for a single spec file (fast — compiles only what it needs)',
+    description: 'Run ng test for one spec file or a folder of specs',
 
     async run() {
         const config = readConfig();
@@ -65,18 +81,18 @@ export default {
 
         const recent = config.focusTest.recent ?? [];
 
-        // ── 1. File path input (with browser mode config at bottom) ───────────
-        let filePath;
+        // ── 1. Target path input (with browser mode config at bottom) ─────────
+        let targetPath;
         const ENTER_NEW = '__new__';
         const BROWSER_CONFIG = '__browser_config__';
 
-        while ( !filePath ) {
+        while ( !targetPath ) {
             if ( recent.length > 0 ) {
                 const modeLabel = config.focusTest.browserMode === 'chrome'
                     ? 'Chrome (visible window)'
                     : 'Headless Chrome (fast)';
                 const choice = await select( {
-                    message: 'Spec file',
+                    message: 'Spec file/folder',
                     choices: [
                         ...recent.map( p => {
                             const mod = detectModule( p );
@@ -109,41 +125,42 @@ export default {
                 }
 
                 if ( choice === ENTER_NEW ) {
-                    filePath = await promptPath();
+                    targetPath = await promptPath();
                 } else {
-                    filePath = choice;
+                    targetPath = choice;
                 }
             } else {
-                filePath = await promptPath();
+                targetPath = await promptPath();
             }
         }
 
-        filePath = normalisePath( filePath, WORKSPACE_ROOT );
+        targetPath = normalisePath( targetPath, WORKSPACE_ROOT );
 
         // ── 2. Detect module ──────────────────────────────────────────────────
-        const mod = detectModule( filePath );
+        const mod = detectModule( targetPath );
 
         console.log( '' );
         if ( mod ) {
             console.log( `  Module : ${chalk.cyan( mod )}` );
         }
-        console.log( `  File   : ${chalk.dim( filePath )}` );
+        console.log( `  Path   : ${chalk.dim( targetPath )}` );
         console.log( '' );
 
         // ── 3. Save to recent ─────────────────────────────────────────────────
-        const updated = [ filePath, ...recent.filter( r => r !== filePath ) ].slice( 0, MAX_RECENT );
+        const updated = [ targetPath, ...recent.filter( r => r !== targetPath ) ].slice( 0, MAX_RECENT );
         config.focusTest.recent = updated;
         writeConfig( config );
 
-        // ── 4. Generate focused tsconfig (type-checks only this file) ─────────
+        // ── 4. Generate focused tsconfig (type-checks only selected target) ───
         console.log( chalk.dim( '  Generating tsconfig.focus-spec.json…' ) );
-        writeFocusTsConfig( filePath );
+        writeFocusTsConfig( targetPath );
 
         // ── 5. Run test ───────────────────────────────────────────────────────
         // --configuration focus → lean karma + focused tsconfig
-        // --include → esbuild emits only this file's dependency tree
+        // --include → esbuild emits only selected spec file(s)
         const browser = config.focusTest.browserMode === 'chrome' ? 'Chrome' : 'CustomHeadlessChrome';
-        const testArgs = [ 'test', '--configuration', 'focus', '--include', filePath, '--browsers', browser ];
+        const includePath = isSpecFilePath( targetPath ) ? targetPath : `${normaliseFolderPath( targetPath )}/**/*.spec.ts`;
+        const testArgs = [ 'test', '--configuration', 'focus', '--include', includePath, '--browsers', browser ];
 
         console.log( chalk.dim( `  Running: ng ${testArgs.join( ' ' )}\n` ) );
 
@@ -157,11 +174,16 @@ export default {
 
 async function promptPath() {
     return input( {
-        message: 'Spec file path',
-        placeholder: 'src/app/modules/payments/foo/bar.component.spec.ts',
+        message: 'Spec file or folder path',
+        placeholder: 'src/app/modules/payments/foo/bar.component.spec.ts OR src/app/modules/payments/foo',
         validate( v ) {
             if ( !v.trim() ) return 'Path is required.';
-            if ( !v.includes( '.spec.ts' ) ) return 'Must be a .spec.ts file.';
+            const p = v.trim();
+            const isFolder = !p.includes( '.spec.ts' );
+            if ( !p.startsWith( 'src/' ) && !p.startsWith( './src/' ) && !p.startsWith( '/' ) ) {
+                return 'Use workspace path (e.g. src/...).';
+            }
+            if ( isFolder && p.includes( '*' ) ) return 'Folder path must not contain glob.';
 
             return true;
         },
