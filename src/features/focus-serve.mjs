@@ -3,6 +3,7 @@ import chalk from 'chalk';
 import { readConfig, writeConfig } from '../utils/config.mjs';
 import { WORKSPACE_ROOT } from '../utils/runner.mjs';
 import { runNgWithExtensions } from '../utils/angular-workspace.mjs';
+import { getAdaptivePageSize } from '../utils/prompt-page-size.mjs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { writeFileSync, readFileSync, readdirSync } from 'fs';
@@ -67,7 +68,7 @@ export default {
                 value:   m.name,
                 checked: m.selected,
             } ) ),
-            pageSize: modules.length + 2,
+            pageSize: getAdaptivePageSize( modules.length ),
             loop: false,
             validate( answers ) {
                 if ( answers.length === 0 ) return 'Select at least one module.';

@@ -14,6 +14,7 @@ import { select, Separator } from '@inquirer/prompts';
 import chalk from 'chalk';
 import { isSetupDone } from './features/setup.mjs';
 import { readConfig, writeConfig } from './utils/config.mjs';
+import { getAdaptivePageSize } from './utils/prompt-page-size.mjs';
 
 // ─── Feature registry ────────────────────────────────────────────────────────
 import setup        from './features/setup.mjs';
@@ -94,7 +95,7 @@ async function mainMenu() {
         const picked = await select( {
             message: 'Choose a tool',
             choices,
-            pageSize: FEATURES.length + recent.length + 6,
+            pageSize: getAdaptivePageSize( choices.length ),
             loop: false,
         } );
 

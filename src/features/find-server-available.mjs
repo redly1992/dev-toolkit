@@ -2,6 +2,7 @@ import { checkbox } from '@inquirer/prompts';
 import chalk from 'chalk';
 import { execa } from 'execa';
 import { readConfig, writeConfig } from '../utils/config.mjs';
+import { getAdaptivePageSize } from '../utils/prompt-page-size.mjs';
 
 const BASE_URL_TEMPLATES = [
     'http://prod-{version}-epicnl.gui.stack02.cloud.able.nv:8080',
@@ -119,6 +120,7 @@ export default {
                 value: version,
                 checked: ( config.serverCheck.selectedVersions ?? [] ).includes( version ),
             } ) ),
+            pageSize: getAdaptivePageSize( versions.length ),
             loop: false,
             validate( answers ) {
                 if ( answers.length === 0 ) return 'Select at least one version.';
@@ -133,6 +135,7 @@ export default {
                 value: template,
                 checked: ( config.serverCheck.selectedTemplates ?? [] ).includes( template ),
             } ) ),
+            pageSize: getAdaptivePageSize( BASE_URL_TEMPLATES.length ),
             loop: false,
             validate( answers ) {
                 if ( answers.length === 0 ) return 'Select at least one base URL.';
