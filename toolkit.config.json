@@ -4,7 +4,7 @@
     "modules": [
       {
         "name": "account-management",
-        "selected": true
+        "selected": false
       },
       {
         "name": "advisor",
@@ -48,7 +48,7 @@
       },
       {
         "name": "instrument",
-        "selected": false
+        "selected": true
       },
       {
         "name": "legal-reporting",
@@ -108,33 +108,35 @@
     "baseBranch": "origin/integration/09.07"
   },
   "authConfig": {
-    "version": "0907",
-    "authType": "ldap",
+    "version": "0908",
+    "authType": "jwt",
     "baseUrlTemplate": "http://ing-{version}-epic.envmgt.stack02.cloud.able.nv:8080",
     "recentVersions": [
-      "0907",
       "0908",
+      "0907",
       "0906"
     ]
   },
   "focusTest": {
     "recent": [
-      "src/app/modules/account-management/parties/modules/details/components/party-details/party-details.component.spec.ts",
-      "src/app/modules/transaction/overview/components/transaction-detail-panel/transaction-detail-panel.component.spec.ts",
-      "src/app/modules/account-management/parties/components/party/party.component.spec.ts",
-      "src/app/modules/account-management/parties/modules/add-party/components/party-form/party-form.component.spec.ts"
+      "src/app/shared/components/multi-select-list/multi-value-select.component.spec.ts",
+      "src/app/modules/foo/bar.component.spec.ts",
+      "src/app/shared/components/multi-select-list",
+      "src/app/modules/account-management",
+      "src/app/modules/midoffice"
     ],
-    "browserMode": "headless"
+    "browserMode": "headless",
+    "watch": true
   },
   "recentFeatures": [
-    "Focus Serve",
+    "Focus Test",
     "Auth Config",
     "Find Server Available"
   ],
   "serverCheck": {
     "selectedVersions": [
       "0907",
-      "0906"
+      "0908"
     ],
     "selectedTemplates": [
       "http://prod-{version}-epicnl.gui.stack02.cloud.able.nv:8080",

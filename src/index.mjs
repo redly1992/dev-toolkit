@@ -122,7 +122,34 @@ async function mainMenu() {
     }
 }
 
-mainMenu().catch( err => {
+/**
+ * Direct CLI dispatch: `toolkit <alias> [...args]` runs a feature's `runCli`
+ * immediately, skipping the interactive menu. Falls back to the menu when no
+ * matching alias is given (or none provided).
+ *
+ * e.g. `toolkit focus-test src/app/.../foo.component.spec.ts`
+ *      `toolkit ft src/app/.../foo.component.spec.ts --chrome`
+ */
+async function runCliOrMenu() {
+    const [ alias, ...rest ] = process.argv.slice( 2 );
+
+    if ( alias ) {
+        const feature = FEATURES.find( f => f.cliAliases?.includes( alias ) );
+
+        if ( feature?.runCli ) {
+            await feature.runCli( rest );
+            return;
+        }
+
+        console.error( chalk.red( `  Unknown command: ${alias}` ) );
+        process.exitCode = 1;
+        return;
+    }
+
+    await mainMenu();
+}
+
+runCliOrMenu().catch( err => {
     if ( err?.name === 'ExitPromptError' ) process.exit( 0 );
     console.error( chalk.red( err.message ) );
     process.exit( 1 );

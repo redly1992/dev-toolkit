@@ -35,6 +35,23 @@ Cuts initial build time significantly — unused module trees are never parsed b
 
 Your module selection is saved in `dev-toolkit/toolkit.config.json` and restored next time.
 
+### Focus Test
+
+Run `ng test` scoped to one spec file or a folder of specs.
+
+**Interactive:** `npm start` → select **Focus Test**.
+
+**Direct CLI (skips all prompts):**
+```bash
+node src/index.mjs focus-test src/app/modules/foo/bar.component.spec.ts
+node src/index.mjs ft src/app/modules/foo               # folder of specs
+node src/index.mjs ft src/app/modules/foo/bar.spec.ts --chrome  # visible browser
+node src/index.mjs ft src/app/modules/foo/bar.component.spec.ts --no-watch  # single run, no re-run on change
+```
+Watch mode defaults to **on** and is persisted in `toolkit.config.json` (also toggleable from the interactive menu). Pass `--watch`/`--no-watch` to override for a single run.
+
+Or via npm: `npm test -- src/app/modules/foo/bar.component.spec.ts`.
+
 ## Adding a New Feature
 
 1. Create `src/features/my-feature.mjs` exporting a default object:
